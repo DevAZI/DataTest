@@ -4,14 +4,17 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
-
+    String TAG = "MainActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,6 +40,18 @@ public class MainActivity extends AppCompatActivity {
         btnRead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                try {
+                    //FileInputStream inputStream = openFileInput("file.txt");
+                    InputStream inputStream =getResources().openRawResource(R.raw.raw_test);
+                    byte[] txt = new byte[30];
+                    inputStream.read(txt);
+                    String str = new String(txt).trim();
+                    inputStream.close();
+                    Log.i(TAG, "input:" + str);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
             }
         });
