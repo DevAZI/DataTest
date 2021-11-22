@@ -2,11 +2,16 @@ package com.example.datatest;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -15,45 +20,72 @@ import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
     String TAG = "MainActivity";
+
+    String name, department;
+    int age;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Button btnWrite = findViewById(R.id.button);
-        Button btnRead = findViewById(R.id.button2);
+        Button btnParse, btnAdd, btnDelete, btnSelect;
+        EditText editName, editAge, editDepartment;
 
-        btnWrite.setOnClickListener(new View.OnClickListener() {
+        editName = findViewById(R.id.editTextTextPersonName);
+        editAge = findViewById(R.id.editTextTextPersonName2);
+        editDepartment = findViewById(R.id.editTextTextPersonName3);
+
+        btnParse = findViewById(R.id.button);
+        btnAdd = findViewById(R.id.button2);
+        btnDelete = findViewById(R.id.button3);
+        btnSelect = findViewById(R.id.button4);
+
+
+
+        btnParse.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                try {
-                    FileOutputStream outputStream = openFileOutput("file.txt", Context.MODE_PRIVATE);//file.txt를 만듬 있으면 그거 사용  /  Context.MODE_PRIVATE= 나만 접근 가능한 것
-                    String str = "파일 테스트";
-                    outputStream.write(str.getBytes());
-                    outputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                name = editName.getText().toString();
+                age = Integer.parseInt(editAge.getText().toString());
+                department = editDepartment.getText().toString();
+            }
+        });
+        MyDBHelper myDBHelper = new MyDBHelper(getApplicationContext());
+        btnAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ContentValues values = new ContentValues();
+                values.put(TableInfo.COLUMN_NAME_NAME, name);
+                values.put(TableInfo.COLUMN_NAME_AGE, age);
+                values.put(TableInfo.COLUMN_NAME_DEP,department);
+
+                SQLiteDatabase db = myDBHelper.getWritableDatabase();
+                long newRowId = db.insert(TableInfo.TABLE_NAME, null, values);
+                Log.i(TAG, "new row Id, "+newRowId);
+
+            }
+        });
+        btnSelect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                SQLiteDatabase db = myDBHelper.getReadableDatabase();
+                Cursor c = db.rawQuery("SELECT * FROM " + TableInfo.TABLE_NAME, null);
+                if (c.moveToFirst()) {
+                    do {
+                        int col1 = c.getInt(0);
+                        String col2 = c.getString(1);
+                        int col3 = c.getInt(2);
+                        String col4 = c.getString(3);
+                        Log.i(TAG, "READ, col1 " + col1 + "/2: " + col2 + "/3: " + col3 + "/4: " + col4);
+                    }
+                    while (c.moveToNext());
                 }
+                c.close();
+                db.close();
+
             }
         });
 
-
-        btnRead.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try {
-                    //FileInputStream inputStream = openFileInput("file.txt");
-                    InputStream inputStream =getResources().openRawResource(R.raw.raw_test);
-                    byte[] txt = new byte[30];
-                    inputStream.read(txt);
-                    String str = new String(txt).trim();
-                    inputStream.close();
-                    Log.i(TAG, "input:" + str);
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        });
     }
+
 }
